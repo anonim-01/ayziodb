@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="tr" class="scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fİ Evreni - 2025 Uzay Görevi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+      /* Base styles */
+      html {
+        scroll-behavior: smooth;
+      }
+      body { font-family: 'Rajdhani', sans-serif; background-color: #000000; color: #ffffff; overflow-x: hidden; }
+      h1, h2, h3, h4, h5, h6 { font-family: 'Orbitron', sans-serif; }
+      .font-mono { font-family: 'Share Tech Mono', monospace; }
+      
+      /* HUD Interface Elements */
+      .hud-border {
+        position: relative;
+        border: 1px solid rgba(168, 85, 247, 0.2);
+        background: rgba(10, 10, 16, 0.6);
+        backdrop-filter: blur(10px);
+        clip-path: polygon(
+          20px 0, 100% 0, 
+          100% calc(100% - 20px), calc(100% - 20px) 100%, 
+          0 100%, 0 20px
+        );
+      }
+
+      .hud-corner::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0;
+        width: 10px; height: 10px;
+        border-top: 2px solid #a855f7;
+        border-left: 2px solid #a855f7;
+      }
+      .hud-corner::after {
+        content: '';
+        position: absolute;
+        bottom: 0; right: 0;
+        width: 10px; height: 10px;
+        border-bottom: 2px solid #a855f7;
+        border-right: 2px solid #a855f7;
+      }
+
+      /* Stars Background */
+      .stars {
+        background-image: 
+          radial-gradient(1px 1px at 20px 30px, #eee, rgba(0,0,0,0)),
+          radial-gradient(1px 1px at 40px 70px, #fff, rgba(0,0,0,0)),
+          radial-gradient(1px 1px at 50px 160px, #ddd, rgba(0,0,0,0)),
+          radial-gradient(1px 1px at 90px 40px, #fff, rgba(0,0,0,0)),
+          radial-gradient(1px 1px at 130px 80px, #fff, rgba(0,0,0,0));
+        background-repeat: repeat;
+        background-size: 200px 200px;
+        animation: fly 60s linear infinite;
+        opacity: 0.5;
+      }
+
+      @keyframes fly {
+        from { transform: translateY(0); }
+        to { transform: translateY(200px); }
+      }
+      
+      /* Holographic Card Sheen - Improved Iridescence */
+      .holo-sheen {
+        background: linear-gradient(
+          115deg,
+          transparent 0%,
+          rgba(168, 85, 247, 0.05) 30%,
+          rgba(255, 255, 255, 0.3) 45%,
+          rgba(34, 211, 238, 0.3) 50%,
+          rgba(255, 255, 255, 0.3) 55%,
+          rgba(168, 85, 247, 0.05) 70%,
+          transparent 100%
+        );
+        background-size: 250% 100%;
+        mix-blend-mode: overlay;
+        opacity: 0;
+        transition: opacity 0.4s ease-out;
+      }
+      
+      .group:hover .holo-sheen {
+        opacity: 1;
+        animation: holo-swipe 1s ease-in-out infinite;
+      }
+
+      @keyframes holo-swipe {
+        0% { background-position: 250% 0; }
+        100% { background-position: -150% 0; }
+      }
+
+      /* Rarity Glows */
+      .glow-Legendary { box-shadow: 0 0 30px rgba(251, 191, 36, 0.4); }
+      .glow-Epic { box-shadow: 0 0 30px rgba(168, 85, 247, 0.4); }
+      .glow-Rare { box-shadow: 0 0 30px rgba(59, 130, 246, 0.4); }
+      .glow-Uncommon { box-shadow: 0 0 30px rgba(34, 197, 94, 0.3); }
+      .glow-Common { box-shadow: 0 0 20px rgba(255, 255, 255, 0.1); }
+
+      /* Scanline Effect for Modals */
+      .scan-line {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 5px;
+        background-color: rgba(124, 58, 237, 0.5);
+        opacity: 0.4;
+        animation: scanline 3s linear infinite;
+        z-index: 3;
+        pointer-events: none;
+      }
+
+      @keyframes scanline {
+        0% { top: -5%; }
+        100% { top: 105%; }
+      }
+      
+      /* Hide Scrollbar */
+      .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+      }
+      .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+      }
+    </style>
+    <script type="importmap">
+{
+  "imports": {
+    "@google/genai": "https://esm.sh/@google/genai",
+    "tailwind-merge": "https://esm.sh/tailwind-merge@2.3.0",
+    "recharts": "https://esm.sh/recharts@2.12.7?external=react,react-dom",
+    "lucide-react": "https://esm.sh/lucide-react@0.378.0",
+    "clsx": "https://esm.sh/clsx@2.1.1",
+    "react": "https://esm.sh/react@18.2.0",
+    "react/": "https://esm.sh/react@18.2.0/",
+    "react-dom": "https://esm.sh/react-dom@18.2.0",
+    "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+    "react-dom/": "https://esm.sh/react-dom@18.2.0/",
+    "framer-motion": "https://esm.sh/framer-motion@10.16.4?external=react,react-dom",
+    "react-router-dom": "https://esm.sh/react-router-dom@6.22.3?external=react,react-dom",
+    "three": "https://esm.sh/three@0.160.0",
+    "@react-three/fiber": "https://esm.sh/@react-three/fiber@8.15.14?external=react,react-dom,three",
+    "@react-three/drei": "https://esm.sh/@react-three/drei@9.96.1?external=react,react-dom,three,@react-three/fiber"
+  }
+}
+</script>
+  <link rel="stylesheet" href="/index.css">
+</head>
+  <body class="bg-black text-white antialiased overflow-x-hidden">
+    <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>
