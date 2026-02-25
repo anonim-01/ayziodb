@@ -3,7 +3,7 @@ import React, { useRef, Suspense, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   X, Rocket, Database, Rotate3D, AlertTriangle, ScanFace, Activity,
-  MousePointer2, Move, Search, Play, Pause
+  MousePointer2, Move, Search, Play, Pause, Shield, Droplets, Orbit, Disc, Sparkles
 } from 'lucide-react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Sphere, Stars, Float, useTexture } from '@react-three/drei';
@@ -224,6 +224,35 @@ const Scene = ({ planet, autoRotate }: { planet: Planet; autoRotate: boolean }) 
   </>
 );
 
+const getRarityColor = (rarity: string) => {
+  switch (rarity) {
+    case 'Legendary': return 'text-yellow-400 border-yellow-400/50 bg-yellow-400/10 shadow-[0_0_15px_rgba(250,204,21,0.3)]';
+    case 'Epic': return 'text-purple-400 border-purple-400/50 bg-purple-400/10 shadow-[0_0_15px_rgba(168,85,247,0.3)]';
+    case 'Rare': return 'text-blue-400 border-blue-400/50 bg-blue-400/10 shadow-[0_0_15px_rgba(96,165,250,0.3)]';
+    case 'Uncommon': return 'text-green-400 border-green-400/50 bg-green-400/10 shadow-[0_0_15px_rgba(74,222,128,0.3)]';
+    default: return 'text-gray-400 border-gray-400/50 bg-gray-400/10';
+  }
+};
+
+const TraitBar = ({ label, value, icon: Icon, color, max = 100 }: any) => (
+  <div className="bg-white/5 p-3 rounded-lg border border-white/10 relative overflow-hidden group hover:bg-white/10 transition-colors">
+    <div className="flex justify-between items-center mb-2">
+      <div className="flex items-center gap-2 text-[10px] text-gray-400 uppercase tracking-wider">
+        <Icon className="w-3 h-3" /> {label}
+      </div>
+      <div className={`text-sm font-mono font-bold ${color}`}>{value}</div>
+    </div>
+    <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
+      <MotionDiv 
+        initial={{ width: 0 }} 
+        animate={{ width: `${Math.min((value / max) * 100, 100)}%` }} 
+        transition={{ duration: 1, delay: 0.2 }}
+        className={`h-full ${color.replace('text-', 'bg-')}`}
+      />
+    </div>
+  </div>
+);
+
 export const PlanetDetailModal = ({ planet, onClose }: { planet: Planet; onClose: () => void }) => {
   const [isConfirmed, setIsConfirmed] = useState(false);
   const [autoRotate, setAutoRotate] = useState(true);
@@ -283,9 +312,14 @@ export const PlanetDetailModal = ({ planet, onClose }: { planet: Planet; onClose
           </div>
 
           <div className="absolute bottom-4 left-4 right-4 z-20 flex items-center justify-between pointer-events-none">
-            <div className="flex flex-col">
-              <h2 className="text-4xl font-orbitron font-black text-white drop-shadow-lg">{planet.name}</h2>
-              <span className="text-purple-400 font-mono text-xs">{planet.tag}</span>
+            <div className="flex flex-col items-start gap-2">
+              <div className={cn("px-3 py-1 rounded-full border text-[10px] font-bold uppercase tracking-widest backdrop-blur-md", getRarityColor(planet.rarity))}>
+                {planet.rarity}
+              </div>
+              <div>
+                <h2 className="text-4xl font-orbitron font-black text-white drop-shadow-lg">{planet.name}</h2>
+                <span className="text-purple-400 font-mono text-xs">{planet.tag}</span>
+              </div>
             </div>
 
             <div className="flex items-center gap-2 pointer-events-auto">
@@ -314,46 +348,57 @@ export const PlanetDetailModal = ({ planet, onClose }: { planet: Planet; onClose
         <div className="w-full md:w-2/5 p-8 md:p-12 flex flex-col justify-center relative bg-[#0a0a12]/95 backdrop-blur-xl border-l border-white/5">
           <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-purple-500/50 to-transparent"></div>
           
-          <div className="mb-8">
+          <div className="mb-6">
             <h3 className="text-sm font-bold text-gray-500 uppercase tracking-widest mb-4 flex items-center gap-2">
               <Database className="w-4 h-4" /> Varlık Verileri
             </h3>
-            <p className="text-gray-300 font-light leading-relaxed border-l-2 border-purple-500 pl-4">
+            <p className="text-gray-300 font-light leading-relaxed border-l-2 border-purple-500 pl-4 mb-4">
               {planet.description}
             </p>
-            <div className="mt-4 text-sm text-gray-400 italic">"{planet.motto}"</div>
+            <div className="flex items-center gap-2 text-sm text-gray-400 italic bg-white/5 p-3 rounded-lg border border-white/5">
+              <Sparkles className="w-4 h-4 text-yellow-500/50" />
+              "{planet.motto}"
+            </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 mb-8">
-             <div className="bg-white/5 p-3 rounded-lg border border-white/10 relative overflow-hidden group">
-                <div className="absolute top-0 right-0 p-2 opacity-20"><Activity /></div>
-                <div className="text-[10px] text-gray-500 uppercase mb-1">Yönetişim</div>
-                <div className="text-2xl font-mono font-bold text-white flex items-end gap-1">
-                  {/* Fix: use MotionSpan for initial/animate/transition props */}
-                  <MotionSpan initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
-                    {planet.traits.governanceMass}
-                  </MotionSpan>
-                  <span className="text-[10px] text-purple-400 mb-1">M</span>
-                </div>
+          <div className="grid grid-cols-2 gap-3 mb-6">
+             <TraitBar 
+               label="Yönetişim" 
+               value={planet.traits.governanceMass} 
+               icon={Activity} 
+               color="text-purple-400" 
+             />
+             <TraitBar 
+               label="Phi Uyumu" 
+               value={planet.traits.phiAffinity} 
+               icon={Rotate3D} 
+               color="text-cyan-400" 
+             />
+             <TraitBar 
+               label="Entropi Kalkanı" 
+               value={planet.traits.entropyShield} 
+               icon={Shield} 
+               color="text-emerald-400" 
+             />
+             <TraitBar 
+               label="Likidite" 
+               value={planet.traits.liquidityDepth} 
+               icon={Droplets} 
+               color="text-blue-400" 
+             />
+             
+             <div className="bg-white/5 p-3 rounded-lg border border-white/10 flex items-center justify-between">
+                 <div className="flex items-center gap-2 text-[10px] text-gray-400 uppercase tracking-wider">
+                   <Orbit className="w-3 h-3" /> Yörünge
+                 </div>
+                 <div className="text-sm font-mono font-bold text-white">{planet.traits.orbit} AU</div>
              </div>
-             <div className="bg-white/5 p-3 rounded-lg border border-white/10 relative overflow-hidden group">
-                <div className="absolute top-0 right-0 p-2 opacity-20"><Rotate3D /></div>
-                <div className="text-[10px] text-gray-500 uppercase mb-1">Phi Uyumu</div>
-                <div className="text-2xl font-mono font-bold text-white flex items-end gap-1">
-                  {/* Fix: use MotionSpan for initial/animate/transition props */}
-                  <MotionSpan initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}>
-                    {planet.traits.phiAffinity}
-                  </MotionSpan>
-                  <span className="text-[10px] text-cyan-400 mb-1">Φ</span>
-                </div>
-             </div>
-             <div className="bg-white/5 p-3 rounded-lg border border-white/10 relative overflow-hidden group">
-                 <div className="text-[10px] text-gray-500 uppercase mb-1">Yörünge</div>
-                 <div className="text-xl font-mono font-bold text-white">{planet.traits.orbit} AU</div>
-             </div>
-             <div className="bg-white/5 p-3 rounded-lg border border-white/10 relative overflow-hidden group">
-                 <div className="text-[10px] text-gray-500 uppercase mb-1">Halkalar</div>
-                 <div className="text-xl font-mono font-bold text-white">{planet.traits.ringCount}</div>
+             
+             <div className="bg-white/5 p-3 rounded-lg border border-white/10 flex items-center justify-between">
+                 <div className="flex items-center gap-2 text-[10px] text-gray-400 uppercase tracking-wider">
+                   <Disc className="w-3 h-3" /> Halkalar
+                 </div>
+                 <div className="text-sm font-mono font-bold text-white">{planet.traits.ringCount}</div>
              </div>
           </div>
 
